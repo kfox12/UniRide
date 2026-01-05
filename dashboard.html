@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - UniRide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name-link {
+            cursor: pointer;
+            text-decoration: underline;
+            transition: opacity 0.3s;
+        }
+
+        .user-name-link:hover {
+            opacity: 0.8;
+        }
+
+        .admin-switch-btn {
+            display: none;
+        }
+
+        .admin-switch-btn.show {
+            display: inline-block;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid white;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .welcome-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-card h2 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-card h3 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .my-rides {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .my-rides h2 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .ride-item {
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .ride-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .ride-location {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .ride-direction {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .ride-details {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .ride-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-edit, .btn-delete {
+            padding: 0.4rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #5568d3;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .flexibility-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .flexibility-option {
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .flexibility-option:hover {
+            border-color: #667eea;
+        }
+
+        .flexibility-option.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .flexibility-option strong {
+            display: block;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        .flexibility-option small {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-primary {
+            flex: 1;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-cancel {
+            flex: 1;
+            padding: 0.75rem;
+            background: #f0f0f0;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🚗 UniRide</div>
+            <div class="user-info">
+                <span id="userName" class="user-name-link" onclick="goToProfile()">Loading...</span>
+                <button id="adminViewBtn" class="btn admin-switch-btn" onclick="switchToAdminView()">Admin View</button>
+                <button class="btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="welcome-card">
+            <h2>Welcome, <span id="welcomeName">Loading...</span>!</h2>
+            <p>Find ride shares with students from <strong id="userCollege">your college</strong></p>
+        </div>
+
+        <div class="actions">
+            <a href="plan-ride.html" class="action-card">
+                <h3>➕ Plan a Ride</h3>
+                <p>Create a new ride share request</p>
+            </a>
+            <a href="view-rides.html" class="action-card">
+                <h3>🔍 View Rides</h3>
+                <p>Browse available rides from your college</p>
+            </a>
+        </div>
+
+        <div class="my-rides">
+            <h2>My Rides</h2>
+            <div id="ridesList">
+                <div class="empty-state">Loading your rides...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Ride Modal -->
+    <div id="editRideModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Ride</h2>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editRideForm">
+                <input type="hidden" id="editRideId">
+                <div class="form-group">
+                    <label for="editLocation">Location *</label>
+                    <input type="text" id="editLocation" required>
+                </div>
+                <div class="form-group">
+                    <label for="editDirection">Direction *</label>
+                    <select id="editDirection" required>
+                        <option value="">Select direction</option>
+                        <option value="to">Going TO this location</option>
+                        <option value="from">Coming FROM this location</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editDepartureTime">Departure Time *</label>
+                    <input type="datetime-local" id="editDepartureTime" required>
+                </div>
+                <div class="form-group">
+                    <label>Time Flexibility *</label>
+                    <div class="flexibility-options">
+                        <div class="flexibility-option" data-value="strict">
+                            <strong>Strict</strong>
+                            <small>±1 hour</small>
+                        </div>
+                        <div class="flexibility-option" data-value="moderate">
+                            <strong>Moderate</strong>
+                            <small>±3 hours</small>
+                        </div>
+                        <div class="flexibility-option" data-value="flexible">
+                            <strong>Flexible</strong>
+                            <small>±6 hours</small>
+                        </div>
+                    </div>
+                    <input type="hidden" id="editFlexibility" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        async function loadUser() {
+            try {
+                const response = await fetch('/api/user');
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    document.getElementById('userName').textContent = currentUser.name;
+                    document.getElementById('userName').setAttribute('title', 'Click to view/edit profile');
+                    document.getElementById('welcomeName').textContent = currentUser.name;
+                    document.getElementById('userCollege').textContent = currentUser.college;
+                    
+                    // Show admin view button if user is admin
+                    if (currentUser.role === 'admin') {
+                        document.getElementById('adminViewBtn').classList.add('show');
+                    }
+                } else {
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                window.location.href = '/login.html';
+            }
+        }
+
+        function switchToAdminView() {
+            window.location.href = '/admin.html';
+        }
+
+        async function loadMyRides() {
+            try {
+                const response = await fetch('/api/rides/my-rides');
+                const data = await response.json();
+                const ridesList = document.getElementById('ridesList');
+                
+                if (data.rides && data.rides.length > 0) {
+                    ridesList.innerHTML = data.rides.map(ride => {
+                        const date = new Date(ride.departure_time);
+                        const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                        return `
+                            <div class="ride-item" data-ride-id="${ride.id}">
+                                <div class="ride-item-header">
+                                    <span class="ride-location">${ride.location}</span>
+                                    <span class="ride-direction">${ride.direction === 'to' ? 'To' : 'From'}</span>
+                                </div>
+                                <div class="ride-details">
+                                    ${date.toLocaleString()} • Flexibility: ${ride.flexibility}
+                                </div>
+                                <div class="ride-actions">
+                                    <button class="btn-edit" onclick="openEditModal(${ride.id}, '${ride.location}', '${ride.direction}', '${localDateTime}', '${ride.flexibility}')">Edit</button>
+                                    <button class="btn-delete" onclick="deleteRide(${ride.id})">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    ridesList.innerHTML = '<div class="empty-state">You haven\'t created any rides yet. <a href="plan-ride.html">Plan your first ride!</a></div>';
+                }
+            } catch (error) {
+                document.getElementById('ridesList').innerHTML = '<div class="empty-state">Error loading rides</div>';
+            }
+        }
+
+        function goToProfile() {
+            window.location.href = '/profile.html';
+        }
+
+        function openEditModal(rideId, location, direction, departureTime, flexibility) {
+            document.getElementById('editRideId').value = rideId;
+            document.getElementById('editLocation').value = location;
+            document.getElementById('editDirection').value = direction;
+            document.getElementById('editDepartureTime').value = departureTime;
+            document.getElementById('editFlexibility').value = flexibility;
+            
+            // Select the correct flexibility option
+            document.querySelectorAll('#editRideModal .flexibility-option').forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.dataset.value === flexibility) {
+                    opt.classList.add('selected');
+                }
+            });
+            
+            document.getElementById('editRideModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editRideModal').classList.remove('show');
+        }
+
+        // Flexibility selection in modal
+        document.querySelectorAll('#editRideModal .flexibility-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('#editRideModal .flexibility-option').forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                document.getElementById('editFlexibility').value = option.dataset.value;
+            });
+        });
+
+        // Edit ride form submission
+        document.getElementById('editRideForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const rideId = document.getElementById('editRideId').value;
+            const location = document.getElementById('editLocation').value;
+            const direction = document.getElementById('editDirection').value;
+            const departureTime = document.getElementById('editDepartureTime').value;
+            const flexibility = document.getElementById('editFlexibility').value;
+            
+            if (!flexibility) {
+                alert('Please select a time flexibility option');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/rides/${rideId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        location,
+                        direction,
+                        departureTime: new Date(departureTime).toISOString(),
+                        flexibility
+                    })
+                });
+                
+                if (response.ok) {
+                    closeEditModal();
+                    loadMyRides();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to update ride');
+                }
+            } catch (error) {
+                alert('An error occurred. Please try again.');
+            }
+        });
+
+        async function deleteRide(rideId) {
+            if (!confirm('Are you sure you want to delete this ride?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/rides/${rideId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    loadMyRides();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to delete ride');
+                }
+            } catch (error) {
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('editRideModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/index.html';
+            } catch (error) {
+                window.location.href = '/index.html';
+            }
+        }
+
+        loadUser().then(() => {
+            loadMyRides();
+        });
+    </script>
+</body>
+</html>
+

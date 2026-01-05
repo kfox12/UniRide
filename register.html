@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - UniRide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 3rem;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        .link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .link a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create Account</h1>
+        <p class="subtitle">Join UniRide to find your ride share</p>
+        
+        <div class="error" id="error"></div>
+        <div class="success" id="success"></div>
+        
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="name">Full Name *</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password *</label>
+                <input type="password" id="password" name="password" required minlength="6">
+            </div>
+            
+            <div class="form-group">
+                <label for="college">College *</label>
+                <select id="college" name="college" required>
+                    <option value="">Select your college</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender">
+                    <option value="">Prefer not to say</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Non-binary">Non-binary</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="graduationYear">Graduation Year</label>
+                <input type="number" id="graduationYear" name="graduationYear" min="2024" max="2030" placeholder="e.g., 2025">
+            </div>
+            
+            <button type="submit" class="btn">Create Account</button>
+        </form>
+        
+        <div class="link">
+            Already have an account? <a href="login.html">Login here</a>
+        </div>
+        <div class="link">
+            <a href="index.html">← Back to home</a>
+        </div>
+    </div>
+
+    <script>
+        // Load colleges
+        fetch('/api/colleges')
+            .then(res => res.json())
+            .then(data => {
+                const select = document.getElementById('college');
+                data.colleges.forEach(college => {
+                    const option = document.createElement('option');
+                    option.value = college;
+                    option.textContent = college;
+                    select.appendChild(option);
+                });
+            });
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                college: document.getElementById('college').value,
+                gender: document.getElementById('gender').value,
+                graduationYear: document.getElementById('graduationYear').value || null
+            };
+            
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
+            errorDiv.classList.remove('show');
+            successDiv.classList.remove('show');
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    successDiv.textContent = 'Account created successfully! Redirecting to login...';
+                    successDiv.classList.add('show');
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                } else {
+                    errorDiv.textContent = data.error || 'Registration failed';
+                    errorDiv.classList.add('show');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.classList.add('show');
+            }
+        });
+    </script>
+</body>
+</html>
+
