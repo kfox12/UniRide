@@ -149,6 +149,36 @@ const rideDb = {
         return stmt.all(userId, college, location, direction, minTime.toISOString(), maxTime.toISOString());
     },
     
+    findMatchesByDate: (userId, college, location, direction, startDate, endDate) => {
+        // Get user's college
+        const user = userDb.findById(userId);
+        if (!user) return [];
+        
+        // Convert dates to start and end of day for proper date range matching
+        // startDate should match from 00:00:00 of that day
+        // endDate should match until 23:59:59 of that day
+        const startDateTime = new Date(startDate);
+        startDateTime.setHours(0, 0, 0, 0);
+        
+        const endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        
+        const stmt = db.prepare(`
+            SELECT r.*, u.name, u.college, u.gender, u.graduation_year
+            FROM rides r
+            JOIN users u ON r.user_id = u.id
+            WHERE r.user_id != ? 
+            AND u.college = ?
+            AND r.location = ?
+            AND r.direction = ?
+            AND r.departure_time >= ?
+            AND r.departure_time <= ?
+            AND r.status = 'active'
+            ORDER BY r.departure_time ASC
+        `);
+        return stmt.all(userId, college, location, direction, startDateTime.toISOString(), endDateTime.toISOString());
+    },
+    
     findAllByCollege: (college) => {
         const stmt = db.prepare(`
             SELECT r.*, u.name, u.college, u.gender, u.graduation_year

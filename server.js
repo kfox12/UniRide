@@ -171,9 +171,9 @@ app.get('/api/rides/my-rides', requireAuth, (req, res) => {
 
 // Get matching rides
 app.get('/api/rides/matches', requireAuth, (req, res) => {
-    const { location, direction, departureTime, flexibility } = req.query;
+    const { location, direction, startDate, endDate } = req.query;
     
-    if (!location || !direction || !departureTime || !flexibility) {
+    if (!location || !direction || !startDate || !endDate) {
         return res.status(400).json({ error: 'Missing required search parameters' });
     }
     
@@ -182,13 +182,18 @@ app.get('/api/rides/matches', requireAuth, (req, res) => {
         return res.status(404).json({ error: 'User not found' });
     }
     
-    const matches = rideDb.findMatches(
+    // Validate date range
+    if (new Date(startDate) > new Date(endDate)) {
+        return res.status(400).json({ error: 'Start date must be before or equal to end date' });
+    }
+    
+    const matches = rideDb.findMatchesByDate(
         req.session.userId,
         user.college,
         location,
         direction,
-        departureTime,
-        flexibility
+        startDate,
+        endDate
     );
     res.json({ matches });
 });
